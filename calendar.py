@@ -26,6 +26,16 @@ holidays = [
     'overlithe',
 ]
 
+weekdays = [
+    'sterday',
+    'sunday',
+    'monday',
+    'trewsday',
+    'hevensday',
+    'mersday',
+    'highday'
+]
+
 
 # Year/month/day helpers
 
@@ -115,17 +125,28 @@ class Date:
         self.month = month
         self.day = day
 
-    def to_string(self):
+    def __repr__(self):
         if self.month in holidays:
-            return '{} {}'.format(title_case(self.month), self.year)
+            return title_case('{} {}'.format(self.month, self.year))
         else:
-            return '{} {} {}'.format(self.day, title_case(self.month), self.year)
+            return title_case('{} {} {} {}'.format(
+                self.get_day_of_week(), self.day, self.month, self.year))
 
-    def to_day_of_year(self):
+    def get_day_of_week(self):
+        if self.month in holidays:
+            return None
+        elif self.month in holiday_months:
+            return weekdays[0] if self.day == 2 else weekdays[6]
+        else:
+            return weekdays[(self.get_day_of_year() - 1) % 7]
+
+    def get_day_of_year(self):
+        leap_year = is_leap_year(self.year)
+
         if self.month == 'yule':
             return 1 if self.day == 2 else get_days_in_year(self.year)
         elif self.month == 'lithe':
-            return 182 if self.day == 1 else (185 if is_leap_year(self.year) else 184)
+            return 182 if self.day == 1 else (185 if leap_year else 184)
         elif self.month == 'mid-year\'s day':
             return 183
         elif self.month == 'overlithe':
@@ -133,7 +154,7 @@ class Date:
         else:
             month_index = months.index(self.month)
             holiday_count = 1 + (0 if month_index < 6 else (4 if leap_year else 3))
-            return (month_index * 30 + holiday_count + self.day)
+            return month_index * 30 + holiday_count + self.day
 
     def add_days(self, count):
         day_index = self.to_day_of_year() + count
