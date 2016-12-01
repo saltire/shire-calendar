@@ -125,23 +125,28 @@ class Date:
         self.month = month
         self.day = day
 
-    def __repr__(self):
+    def __str__(self):
         if self.month in holidays:
             return title_case('{} {}'.format(self.month, self.year))
         else:
             return title_case('{} {} {} {}'.format(
                 self.get_day_of_week(), self.day, self.month, self.year))
 
+    def is_leap_year(self):
+        return is_leap_year(self.year)
+
     def get_day_of_week(self):
         if self.month in holidays:
             return None
         elif self.month in holiday_months:
             return weekdays[0] if self.day == 2 else weekdays[6]
-        else:
+        elif months.index(self.month) < 6:
             return weekdays[(self.get_day_of_year() - 1) % 7]
+        else:
+            return weekdays[(self.get_day_of_year() - (3 if self.is_leap_year() else 2)) % 7]
 
     def get_day_of_year(self):
-        leap_year = is_leap_year(self.year)
+        leap_year = self.is_leap_year()
 
         if self.month == 'yule':
             return 1 if self.day == 2 else get_days_in_year(self.year)
@@ -155,6 +160,16 @@ class Date:
             month_index = months.index(self.month)
             holiday_count = 1 + (0 if month_index < 6 else (4 if leap_year else 3))
             return month_index * 30 + holiday_count + self.day
+
+    def get_week_of_year(self):
+        day_of_year = self.get_day_of_year()
+
+        if self.month in holidays:
+            return None
+        elif day_of_year < 183:
+            return (day_of_year - 1) // 7 + 1
+        else:
+            return (day_of_year - (3 if self.is_leap_year() else 2)) // 7 + 1
 
     def add_days(self, count):
         day_index = self.to_day_of_year() + count
